@@ -1,29 +1,38 @@
 package org.maze;
 
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 
 class Maze {
     String print(String command) {
         String[] commands = command.split("\n");
-        String dimensionString = commands[0];
-        String connectionString = commands[1];
 
-        String[] roadDimensions = dimensionString.split(" ");
-        String[] connections = connectionString.split(";");
+        Grid[][] allRenderGrids = Grid.buildGrids(
+                renderDimension(commands[0]),
+                connectionDefinition(commands[1]));
 
-        Grid[][] renderGrids = RenderGrid.buildGrids(convertRoadGridsToRenderGrids(roadDimensions));
-
-        StringBuilder result = new StringBuilder();
-        for (Grid[] renderGrid : renderGrids) {
-            result.append(String.join(" ", Arrays.stream(renderGrid).map(Object::toString).collect(Collectors.toList()))).append("\n");
-        }
-        return result.toString();
+        return format(allRenderGrids);
     }
 
-    private int[] convertRoadGridsToRenderGrids(String[] roadDimensions) {
-        return Arrays.stream(roadDimensions)
-                .mapToInt(Integer::parseInt).map(dimension -> dimension * 2 + 1)
-                .toArray();
+    private Connections connectionDefinition(String connectionCommand) {
+        return Connections.buildFrom(connectionCommand).convertedBy(roadMappingRender());
+    }
+
+    private Dimension renderDimension(String roadGridCommand) {
+        return Dimension.buildFrom(roadGridCommand).convertedBy(roadMappingRender());
+    }
+
+    private IntUnaryOperator roadMappingRender() {
+        return connection -> connection * 2 + 1;
+    }
+
+    private String format(Grid[][] allRenderGrids) {
+        List<String> results = Arrays.stream(allRenderGrids)
+                .map(renderGrid -> String.join(" ", Arrays.stream(renderGrid).map(Object::toString).collect(Collectors.toList())))
+                .collect(Collectors.toList());
+        return String.join("\n", results);
     }
 }
+
