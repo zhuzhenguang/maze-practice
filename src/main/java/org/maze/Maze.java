@@ -5,10 +5,14 @@ import java.util.stream.Collectors;
 
 class Maze {
     String print(String command) {
-        Grid[][] renderGrids = RenderGrid.buildGrids(
-                Arrays.stream(command.split(" "))
-                        .mapToInt(Integer::parseInt).map(dimension -> dimension * 2 + 1)
-                        .toArray());
+        String[] commands = command.split("\n");
+        String dimensionString = commands[0];
+        String connectionString = commands[1];
+
+        String[] roadDimensions = dimensionString.split(" ");
+        String[] connections = connectionString.split(";");
+
+        Grid[][] renderGrids = RenderGrid.buildGrids(convertRoadGridsToRenderGrids(roadDimensions));
 
         StringBuilder result = new StringBuilder();
         for (Grid[] renderGrid : renderGrids) {
@@ -16,34 +20,10 @@ class Maze {
         }
         return result.toString();
     }
-}
 
-class RenderGrid implements Grid {
-    private int x;
-    private int y;
-
-    private RenderGrid(int x, int y) {
-        this.x = x;
-        this.y = y;
+    private int[] convertRoadGridsToRenderGrids(String[] roadDimensions) {
+        return Arrays.stream(roadDimensions)
+                .mapToInt(Integer::parseInt).map(dimension -> dimension * 2 + 1)
+                .toArray();
     }
-
-    static Grid[][] buildGrids(int[] renderGridDimensions) {
-        Grid[][] renderGrids = new RenderGrid[renderGridDimensions[0]][renderGridDimensions[1]];
-
-        for (int x = 0; x < renderGrids.length; x++) {
-            for (int y = 0; y < renderGrids[x].length; y++) {
-                renderGrids[x][y] = new RenderGrid(x, y);
-            }
-        }
-
-        return renderGrids;
-    }
-
-    @Override
-    public String toString() {
-        return (x - 1) % 2 == 0 && (y - 1) % 2 == 0 && x - 1 >= 0 && y - 1 >= 0 ? "[R]" : "[W]";
-    }
-}
-
-interface Grid {
 }
